@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surveillance AI | Illegal Parking Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #3b82f6;
+            --danger-color: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: var(--card-bg);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 700; color: var(--accent-color); }
+        .logo span { color: var(--text-main); }
+
+        .status-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pulse {
+            width: 8px; height: 8px; background: #10b981; border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 1);
+            animation: pulse-green 2s infinite;
+        }
+
+        .sound-btn {
+            cursor: pointer;
+            margin-right: 1.5rem;
+            color: var(--text-muted);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .sound-btn.active { color: var(--accent-color); }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .video-section {
+            background: var(--card-bg);
+            border-radius: 1rem;
+            padding: 1rem;
+            overflow: hidden;
+            border: 1px solid #334155;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .video-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border-left: 4px solid var(--accent-color);
+            border: 1px solid #334155;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .stat-card.alert { border-left-color: var(--danger-color); }
+        .stat-card h3 { margin: 0; font-size: 0.875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-card p { margin: 0.5rem 0 0; font-size: 1.25rem; font-weight: 700; }
+
+        .btn-capture {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 1rem;
+            cursor: pointer;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-capture:hover { background: #2563eb; transform: translateY(-2px); }
+        .btn-capture:active { transform: translateY(0); }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 1024px) {
+            main { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-video"></i> Surveillance<span>AI</span>
+        </div>
+        <div style="display: flex; align-items: center;">
+            <div class="sound-btn" id="sound-toggle" onclick="toggleSound()">
+                <i class="fas fa-volume-mute"></i> <span>SOUND OFF</span>
+            </div>
+            <div class="status-badge">
+                <div class="pulse"></div> LIVE FEED ACTIVE
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <section class="video-section">
+            <div class="video-container">
+                <img src="{{ url_for('video_feed') }}" alt="Live Surveillance Feed">
+            </div>
+        </section>
+
+        <aside class="sidebar">
+            <div class="stat-card">
+                <h3><i class="fas fa-car"></i> Detection Status</h3>
+                <p id="in-zone-count">Zone A: 0 Vehicles</p>
+            </div>
+            <div class="stat-card alert">
+                <h3><i class="fas fa-exclamation-triangle"></i> Alert System</h3>
+                <p id="violation-count">0 Violations Detected</p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-microchip"></i> Processor</h3>
+                <p>YOLOv8 Real-time</p>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-parking"></i> Currently in Zone</h3>
+                <div id="parked-log" style="margin-top: 10px; font-size: 0.9rem; font-weight: 600;">
+                    <div style="color: var(--text-muted);">No vehicles in zone.</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-id-card"></i> Illegal Plates</h3>
+                <div id="plate-log" style="margin-top: 10px; font-size: 0.9rem; font-weight: 600;">
+                    <div style="color: var(--text-muted);">No records found.</div>
+                </div>
+            </div>
+            <button class="btn-capture" onclick="captureFrame()">
+                <i class="fas fa-camera"></i> CAPTURE EVIDENCE
+            </button>
+        </aside>
+    </main>
+    
+    <footer>
+        <p>&copy; 2023 Illegal Parking Detection System. Built with Python & OpenCV.</p>
+    </footer>
+
+    <script>
+        let lastViolationCount = 0;
+        let soundEnabled = false;
+        // Using a clean notification sound. You can replace this URL with a local path like '/static/alert.mp3'
+        const alertSound = new Audio('https://cdn.pixabay.com/audio/2021/08/04/audio_0625c1539c.mp3');
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle');
+            if (soundEnabled) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fas fa-volume-up"></i> <span>SOUND ON</span>';
+                // Prime the audio object to bypass browser autoplay restrictions
+                alertSound.play().then(() => { alertSound.pause(); alertSound.currentTime = 0; });
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fas fa-volume-mute"></i> <span>SOUND OFF</span>';
+            }
+        }
+
+        function updateStats() {
+            fetch('/api/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('in-zone-count').innerText = `Zone A: ${data.in_zone} Vehicles`;
+                    document.getElementById('violation-count').innerText = `${data.violations} Violations Detected`;
+                    
+                    const plateLog = document.getElementById('plate-log');
+                    if (data.recent_plates && data.recent_plates.length > 0) {
+                        plateLog.innerHTML = data.recent_plates.map(p => 
+                            `<div style="padding: 6px 10px; margin-bottom: 5px; background: rgba(239, 68, 68, 0.1); border-radius: 6px; border-left: 4px solid var(--danger-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-hashtag" style="font-size: 0.7rem; opacity: 0.6;"></i> ${p}</div>`
+                        ).join('');
+                    } else {
+                        plateLog.innerHTML = '<div style="color: var(--text-muted);">No records found.</div>';
+                    }
+                    
+                    const parkedLog = document.getElementById('parked-log');
+                    if (data.parked_vehicles && data.parked_vehicles.length > 0) {
+                        parkedLog.innerHTML = data.parked_vehicles.map(v => 
+                            `<div style="padding: 6px 10px; margin-bottom: 5px; background: rgba(59, 130, 246, 0.1); border-radius: 6px; border-left: 4px solid var(--accent-color); display: flex; align-items: center; gap: 8px;"><i class="fas fa-car-side" style="font-size: 0.7rem; opacity: 0.6;"></i> ${v}</div>`
+                        ).join('');
+                    } else {
+                        parkedLog.innerHTML = '<div style="color: var(--text-muted);">No vehicles in zone.</div>';
+                    }
+
+                    // Play sound only if count increased and sound is toggled ON
+                    if (soundEnabled && data.violations > lastViolationCount) {
+                        alertSound.play().catch(err => console.log("Audio play blocked: ", err));
+                    }
+                    lastViolationCount = data.violations;
+                    
+                    const alertCard = document.getElementById('violation-count').parentElement;
+                    if(data.violations > 0) {
+                        alertCard.style.background = 'rgba(239, 68, 68, 0.15)';
+                    } else {
+                        alertCard.style.background = 'var(--card-bg)';
+                    }
+                });
+        }
+        setInterval(updateStats, 1000);
+
+        function captureFrame() {
+            const btn = document.querySelector('.btn-capture');
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+
+            fetch('/api/capture', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Evidence Captured! ' + data.message);
+                    } else {
+                        alert('Capture Failed: ' + data.message);
+                    }
+                })
+                .catch(err => alert('Network Error: ' + err))
+                .finally(() => {
+                    btn.innerHTML = originalContent;
+                    btn.style.opacity = '1';
+                    btn.disabled = false;
+                });
+        }
+    </script>
+</body>
+</html>
